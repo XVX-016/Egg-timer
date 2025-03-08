@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Egg Timer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f4;
+    }
+
+    .container {
+      text-align: center;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+      position: relative;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .options {
+      display: none; /* Hidden by default */
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #28a745;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    #timer-section {
+      display: none; /* Hidden by default */
+    }
+
+    #timer-display {
+      font-size: 48px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    #progress-bar {
+      width: 100%;
+      height: 10px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    #progress {
+      height: 100%;
+      width: 100%;
+      background-color: #28a745;
+      transition: width 1s linear;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    #pause-btn, #resume-btn, #back-to-options-btn, #back-to-home-btn {
+      display: none; /* Hidden by default */
+      margin-top: 10px;
+    }
+
+    #pause-btn {
+      background-color: #ffc107;
+      color: black;
+    }
+
+    #resume-btn {
+      background-color: #17a2b8;
+      color: white;
+    }
+
+    #back-to-options-btn, #back-to-home-btn {
+      background-color: #6c757d;
+      color: white;
+    }
+
+    .back-buttons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .back-buttons button {
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+
+    /* Center the Start Timer button on the homepage */
+    #start-timer-btn {
+      margin: 0 auto;
+      display: block;
+    }
+
+    /* Center the homepage content */
+    .home-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Back Buttons -->
+    <div class="back-buttons">
+      <button id="back-to-home-from-options-btn" style="display: none;">Back to Home</button>
+      <button id="back-to-options-from-timer-btn" style="display: none;">Back to Options</button>
+      <button id="back-to-home-from-timer-btn" style="display: none;">Back to Home</button>
+    </div>
+
+    <!-- Homepage Content -->
+    <div class="home-content">
+      <h1>Egg Timer</h1>
+      <img src="https://via.placeholder.com/300x150?text=Home+Page+Image" alt="Home Page Image" id="home-image">
+      <button id="start-timer-btn">Start Timer</button>
+    </div>
+
+    <!-- 4 Options -->
+    <div class="options" id="options">
+      <button data-time="3">
+        <img src="https://via.placeholder.com/50x50?text=Soft" alt="Soft Eggs">
+        Soft Eggs (3 mins)
+      </button>
+      <button data-time="5">
+        <img src="https://via.placeholder.com/50x50?text=Medium" alt="Medium Eggs">
+        Medium Eggs (5 mins)
+      </button>
+      <button data-time="7">
+        <img src="https://via.placeholder.com/50x50?text=Hard" alt="Hard Eggs">
+        Hard Eggs (7 mins)
+      </button>
+      <button data-time="10">
+        <img src="https://via.placeholder.com/50x50?text=Extra+Hard" alt="Extra Hard Eggs">
+        Extra Hard Eggs (10 mins)
+      </button>
+    </div>
+
+    <!-- Timer Section -->
+    <div id="timer-section">
+      <div id="timer-display">00:00</div>
+      <div id="progress-bar">
+        <div id="progress"></div>
+      </div>
+      <img src="https://via.placeholder.com/300x150?text=Timer+Image" alt="Timer Image" id="timer-image">
+      <button id="pause-btn">Pause</button>
+      <button id="resume-btn">Resume</button>
+      <button id="back-to-home-btn">Back to Home</button> <!-- New Back to Home button -->
+    </div>
+  </div>
+
+  <script>
+    // JavaScript for the Egg Timer
+    const startTimerBtn = document.getElementById('start-timer-btn');
+    const optionsSection = document.getElementById('options');
+    const timerSection = document.getElementById('timer-section');
+    const timerDisplay = document.getElementById('timer-display');
+    const progressBar = document.getElementById('progress');
+    const pauseBtn = document.getElementById('pause-btn');
+    const resumeBtn = document.getElementById('resume-btn');
+    const backToHomeFromOptionsBtn = document.getElementById('back-to-home-from-options-btn');
+    const backToOptionsFromTimerBtn = document.getElementById('back-to-options-from-timer-btn');
+    const backToHomeFromTimerBtn = document.getElementById('back-to-home-btn'); // New Back to Home button
+    const homeImage = document.getElementById('home-image');
+    const timerImage = document.getElementById('timer-image');
+
+    let timeRemaining;
+    let timerInterval;
+    let isPaused = false;
+
+    // Audio for the timer end notification
+    const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+
+    // Show options when "Start Timer" is clicked
+    startTimerBtn.addEventListener('click', () => {
+      startTimerBtn.style.display = 'none'; // Hide the "Start Timer" button
+      homeImage.style.display = 'none'; // Hide the home image
+      optionsSection.style.display = 'grid'; // Show the options in a 2x2 grid
+      backToHomeFromOptionsBtn.style.display = 'inline-block'; // Show the back button
+    });
+
+    // Add event listeners to the options buttons
+    optionsSection.querySelectorAll('button').forEach(button => {
+      if (button.getAttribute('data-time')) {
+        button.addEventListener('click', () => {
+          const selectedTime = parseInt(button.getAttribute('data-time'), 10);
+          startTimer(selectedTime);
+        });
+      }
+    });
+
+    // Back to Home from Options Page
+    backToHomeFromOptionsBtn.addEventListener('click', () => {
+      optionsSection.style.display = 'none'; // Hide the options
+      startTimerBtn.style.display = 'block'; // Show the "Start Timer" button
+      homeImage.style.display = 'block'; // Show the home image
+      backToHomeFromOptionsBtn.style.display = 'none'; // Hide the back button
+    });
+
+    // Back to Options from Timer Page
+    backToOptionsFromTimerBtn.addEventListener('click', () => {
+      clearInterval(timerInterval); // Stop the timer
+      timerSection.style.display = 'none'; // Hide the timer section
+      optionsSection.style.display = 'grid'; // Show the options
+      backToHomeFromOptionsBtn.style.display = 'inline-block'; // Show the back button
+      backToOptionsFromTimerBtn.style.display = 'none'; // Hide the back button
+      backToHomeFromTimerBtn.style.display = 'none'; // Hide the back button
+    });
+
+    // Back to Home from Timer Page
+    backToHomeFromTimerBtn.addEventListener('click', () => {
+      clearInterval(timerInterval); // Stop the timer
+      timerSection.style.display = 'none'; // Hide the timer section
+      startTimerBtn.style.display = 'block'; // Show the "Start Timer" button
+      homeImage.style.display = 'block'; // Show the home image
+      backToHomeFromOptionsBtn.style.display = 'none'; // Hide the back button    
+      backToOptionsFromTimerBtn.style.display = 'none'; // Hide the back button
+      backToHomeFromTimerBtn.style.display = 'none'; // Hide the back button
+    });
+
+    // Start the timer
+    function startTimer(minutes) {
+      timeRemaining = minutes * 60; // Convert minutes to seconds
+
+      // Show the timer section and hide the options
+      optionsSection.style.display = 'none';
+      timerSection.style.display = 'block';
+
+      // Reset progress bar
+      progressBar.style.width = '100%';
+
+      // Show pause button and hide resume button
+      pauseBtn.style.display = 'inline-block';
+      resumeBtn.style.display = 'none';
+      backToOptionsFromTimerBtn.style.display = 'inline-block'; // Show the back button
+      backToHomeFromTimerBtn.style.display = 'inline-block'; // Show the back button
+
+      // Start the countdown
+      timerInterval = setInterval(updateTimer, 1000);
+
+      // Update the timer
+      function updateTimer() {
+        if (isPaused) return;
+
+        if (timeRemaining > 0) {
+          timeRemaining--;
+          const minutes = Math.floor(timeRemaining / 60);
+          const seconds = timeRemaining % 60;
+          timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+          // Update progress bar
+          const progressPercentage = (timeRemaining / (minutes * 60)) * 100;
+          progressBar.style.width = `${progressPercentage}%`;
+        } else {
+          clearInterval(timerInterval);
+          audio.play(); // Play the notification sound
+          alert('Time is up!'); // Show an alert when the timer ends
+        }
+      }
+    }
+
+    // Pause and resume the timer
+    pauseBtn.addEventListener('click', () => {
+      isPaused = true;
+      pauseBtn.style.display = 'none';
+      resumeBtn.style.display = 'inline-block';
+    });
+
+    resumeBtn.addEventListener('click', () => {
+      isPaused = false;
+      pauseBtn.style.display = 'inline-block';
+      resumeBtn.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
